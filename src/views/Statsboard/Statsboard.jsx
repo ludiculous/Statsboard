@@ -8,18 +8,6 @@ import {thArray, tdArray} from 'variables/Variables.jsx';
 import StockSymbol from 'variables/StockSymbol.json';
 import GraphData from 'variables/GraphData.json'
 import { VictoryBar, VictoryChart, VictoryLine } from 'victory';
-// Imagine you have a list of languages that you'd like to autosuggest.
-const languages = [
-  {
-    name: 'C',
-    year: 1972
-  },
-  {
-    name: 'Elm',
-    year: 2012
-  }
-  
-];
 
 const StockData = []
 var count = 0
