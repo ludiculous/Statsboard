@@ -1,171 +1,174 @@
 import React, { Component } from 'react';
 import { Grid, Row, Col, Table } from 'react-bootstrap';
 import Autosuggest from 'react-autosuggest';
-
+import { connect } from 'react-redux';
 import Card from 'components/Card/Card.jsx';
 import {FormInputs} from 'components/FormInputs/FormInputs.jsx';
 import {thArray, tdArray} from 'variables/Variables.jsx';
 import StockSymbol from 'variables/StockSymbol.json';
-import GraphData from 'variables/GraphData.json'
-import { VictoryBar, VictoryChart, VictoryLine } from 'victory';
+import GraphData from 'variables/GraphData.json';
+import GraphTheme from 'variables/GraphTheme';
+import {fetchStockData, onChange, onSuggestionsFetchRequested, onSuggestionsClearRequested} from 'actions'
+import { VictoryBar, VictoryChart, VictoryLine, VictoryAxis } from 'victory';
 
 const StockData = []
 var count = 0
 var Dates = []
-
+var table_title = ''
+/*
 if(StockData.length < 1){
   while(count < 10) {
   count++
   Dates.push(GraphData.dataset.data[count][0])
   console.log(Dates)
+  var time = GraphData.dataset.data[count][0].split("-")
   StockData.push(
     {
-      x: GraphData.dataset.data[count][0],
+      x: new Date(time[0], time[1], time[2]),
       y: GraphData.dataset.data[count][1]
     }
   )
   }
+  console.log(StockData.length)
+}
+*/
+const getSuggestionValue = function(suggestion){
+  return suggestion.symbol;
+  console.log(suggestion)
 }
 
 
-// Teach Autosuggest how to calculate suggestions for any given input value.
-const getSuggestions = value => {
-  const inputValue = value.trim().toLowerCase();
-  const inputLength = inputValue.length;
 
-  return inputLength === 0 ? [] : StockSymbol.filter(Stock =>
-    Stock.symbol.toLowerCase().slice(0, inputLength) === inputValue
-  ).slice(0,10);
-};
-
-// When suggestion is clicked, Autosuggest needs to populate the input
-// based on the clicked suggestion. Teach Autosuggest how to calculate the
-// input value for every given suggestion.
-const getSuggestionValue = suggestion => suggestion.symbol;
-
-// Use your imagination to render suggestions.
 const renderSuggestion = suggestion => (
-  <div>
-    {suggestion.symbol}
-    {suggestion.name}
-  </div>
+  <ul>
+    <li>{suggestion.symbol}</li>
+    <li>{suggestion.name}</li>
+  </ul>
+
 );
 
 class Statsboard extends React.Component {
-  constructor() {
-    super();
-
-    // Autosuggest is a controlled component.
-    // This means that you need to provide an input value
-    // and an onChange handler that updates this value (see below).
-    // Suggestions also need to be provided to the Autosuggest,
-    // and they are initially empty because the Autosuggest is closed.
-    this.state = {
-      value: '',
-      suggestions: []
-    };
+  componentWillMount() {
+    
   }
 
-  handleSearch () { 
-    console.log(this.state.value)
+
+  onSuggestionSelected (event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) {
+  table_title = suggestion.name
+  console.log(suggestion.symbol)
+    this.props.fetchStockData(suggestion.symbol)
   }
 
-  onChange = (event, { newValue }) => {
-    this.setState({
-      value: newValue
-    });
-  };
+  renderStockData() { 
+    return this.props.stock.stockdata.map(function(stock,index) {
+      console.log(stock.date)
+      return(
+        <tr key={index}>
+          <td>{stock.date}</td>
+          <td>{stock.open}</td>
+          <td>{stock.high}</td>
+          <td>{stock.low}</td>
+          <td>{stock.volume}</td>
+          <td>{stock.changePercent}</td>                                         
+        </tr>
+        )
+    })
+  }
 
-  // Autosuggest will call this function every time you need to update suggestions.
-  // You already implemented this logic above, so just use it.
-  onSuggestionsFetchRequested = ({ value }) => {
-    this.setState({
-      suggestions: getSuggestions(value)
-    });
-  };
+  renderStockChart() {
+    var stockData = [];
+    var max = '';
+    
 
-  // Autosuggest will call this function every time you need to clear suggestions.
-  onSuggestionsClearRequested = () => {
-    this.setState({
-      suggestions: []
-    });
-  };
+    this.props.stock.stockdata.map(function(stock,index) {
+      
+      var time = stock.date
+      var newTime = time.split("-");
+      var date = new Date(newTime[0],Number(newTime[1]-1).toString(),Number(newTime[2]).toString());
+      
+      console.log(date);
+      stockData.push({
+        x: date,
+        y: stock.high
+      })
+
+      if(max == '') {
+        max = stock.high
+      }
+
+      if(stock.high > max){
+        max = stock.high
+      }
+    })
+
+    if(stockData.length > 1){
+
+      return (
+          <VictoryChart theme={GraphTheme} scale={{x:"time"}} domainPadding={25} >
+            <VictoryLine
+              domain ={{y:[0,Math.round(max)]}}
+              data={stockData}
+            />
+          </VictoryChart>
+      )
+    }
+  }
 
   render() {
-    const { value, suggestions } = this.state;
-    // Autosuggest will pass through all these props to the input.
+
     const inputProps = {
       placeholder: 'Type a programming language',
-      value,
-      onChange: this.onChange
+      value: this.props.suggestions.value,
+      onChange: this.props.onChange
     };
 
-    // Finally, render it!
     return (
        <div className="content">
                 <Grid fluid>
                     <Row>
                         <Col md={12}>
                           <h1> StatsBoard </h1>
-                          <Autosuggest
-                            suggestions={suggestions}
-                            onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-                            onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+                           <Autosuggest
+                            suggestions={this.props.suggestions.suggestions}
+                            onSuggestionsFetchRequested={this.props.onSuggestionsFetchRequested}
+                            onSuggestionsClearRequested={this.props.onSuggestionsClearRequested}
+                            onSuggestionSelected = {this.onSuggestionSelected.bind(this)} 
                             getSuggestionValue={getSuggestionValue}
                             renderSuggestion={renderSuggestion}
                             inputProps={inputProps}
                           />
-                        <Col md={3}>
-                            <i onClick={this.handleSearch.bind(this)} className="fa fa-search"></i><p className="hidden-lg hidden-md">Search</p>
-                          </Col>
                         </Col>
 
-                        <Col md={6}>
-                            <VictoryChart>
-                              <VictoryLine
-                                domain ={{y:[0,100]}}
-                                data={StockData}
-                              />
-                            </VictoryChart>
-                        </Col>
 
                         <Col md={12}>
                             <Card
                                 plain
-                                title="Striped Table with Hover"
-                                category="Here is a subtitle for this table"
+                                title={table_title}
                                 ctTableFullWidth ctTableResponsive
                                 content={
                                     <Table hover>
                                         <thead>
                                             <tr>
-                                                {
-                                                    thArray.map((prop, key) => {
-                                                        return (
-                                                        <th  key={key}>{prop}</th>
-                                                        );
-                                                    })
-                                                }
+                                               <th>Date</th>
+                                               <th>Open</th>
+                                               <th>High</th>
+                                               <th>Low</th>
+                                               <th>Volume</th>
+                                               <th>Change Percent</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {
-                                                tdArray.map((prop,key) => {
-                                                    return (
-                                                        <tr key={key}>{
-                                                            prop.map((prop,key)=> {
-                                                                return (
-                                                                    <td  key={key}>{prop}</td>
-                                                                );
-                                                            })
-                                                        }</tr>
-                                                    )
-                                                })
+                                              this.renderStockData()
                                             }
                                         </tbody>
                                     </Table>
                                 }
                             />
+                        </Col>
+
+                        <Col md={12}>
+                           {this.renderStockChart()}
                         </Col>
 
                     </Row>
@@ -175,4 +178,11 @@ class Statsboard extends React.Component {
   }
 }
 
-export default Statsboard;
+function mapStateToProps(state) {
+  return {
+    suggestions: state.suggestions,
+    stock: state.stock
+  }
+}
+
+export default connect(mapStateToProps,{onChange, onSuggestionsFetchRequested, onSuggestionsClearRequested, fetchStockData})(Statsboard);
