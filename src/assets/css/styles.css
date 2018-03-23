@@ -1,0 +1,25 @@
+#main-panel {
+	overflow-x: hidden;
+}
+
+.logo-img i {
+	font-size: 1.5em;
+}
+
+.react-autosuggest__input {
+	width: 100%;
+	min-width: 250px;
+	border: 0px;
+	border-bottom: 1px solid #ccc;
+	padding: 5px;
+	margin-bottom: 10px;
+	cursor:auto; 
+}
+.react-autosuggest__suggestions-list {
+	list-style: none;
+	list-style-type: none;
+}
+
+.VictoryContainer {
+	height: 50%!important;
+}

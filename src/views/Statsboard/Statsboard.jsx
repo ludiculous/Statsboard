@@ -14,7 +14,9 @@ import { VictoryBar, VictoryChart, VictoryLine, VictoryAxis } from 'victory';
 const StockData = []
 var count = 0
 var Dates = []
-var table_title = ''
+var CompanyName = ''
+var CompanySymbol = ''
+var CompanyTime = ''
 /*
 if(StockData.length < 1){
   while(count < 10) {
@@ -54,9 +56,10 @@ class Statsboard extends React.Component {
 
 
   onSuggestionSelected (event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) {
-  table_title = suggestion.name
+  CompanyName = suggestion.name
+  CompanySymbol = suggestion.symbol
   console.log(suggestion.symbol)
-    this.props.fetchStockData(suggestion.symbol)
+    this.props.fetchStockData(suggestion.symbol,'1m')
   }
 
   renderStockData() { 
@@ -75,21 +78,59 @@ class Statsboard extends React.Component {
     })
   }
 
+
+  renderStockTable() {
+    if(this.props.stock.stockdata.length > 1){
+     return(
+      <Card
+          plain
+          title={this.props.suggestions.suggestions.name}
+          ctTableFullWidth ctTableResponsive
+          content={
+              <Table className="stock-chart-header">
+                  <thead>
+                      <tr>
+                         <th>Date</th>
+                         <th>Open</th>
+                         <th>High</th>
+                         <th>Low</th>
+                         <th>Volume</th>
+                         <th>Change Percent</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {
+                        this.renderStockData()
+                      }
+                  </tbody>
+              </Table>
+          }
+      />
+      )
+    }
+  }
+
+  fetchStockTime(CompanySymbol, time){
+    if(CompanyTime !== time){
+      this.props.fetchStockData(CompanySymbol, time);  
+    }
+    CompanyTime = time;
+  }
+
   renderStockChart() {
     var stockData = [];
     var max = '';
-    
+    var context = this;
 
     this.props.stock.stockdata.map(function(stock,index) {
       
       var time = stock.date
-      var newTime = time.split("-");
-      var date = new Date(newTime[0],Number(newTime[1]-1).toString(),Number(newTime[2]).toString());
+      var date = new Date(time).toLocaleDateString('en-US');;
       
       console.log(date);
       stockData.push({
         x: date,
-        y: stock.high
+        y: parseInt(stock.high)
       })
 
       if(max == '') {
@@ -104,12 +145,32 @@ class Statsboard extends React.Component {
     if(stockData.length > 1){
 
       return (
-          <VictoryChart theme={GraphTheme} scale={{x:"time"}} domainPadding={25} >
+        <Col md={12}>
+          <Table hover>
+            <thead>
+              <tr> 
+                <th onClick={()=>{context.fetchStockTime(CompanySymbol, '1m')}}>1m</th>
+                <th onClick={()=>{context.fetchStockTime(CompanySymbol, '3m')}}>3m</th>
+                <th onClick={()=>{context.fetchStockTime(CompanySymbol, '1y')}}>1y</th>
+                <th onClick={()=>{context.fetchStockTime(CompanySymbol, '5y')}}>5y</th>
+              </tr>
+            </thead>
+          </Table>                         
+          <VictoryChart theme={GraphTheme} scale={{x:"time"}}>
+            <VictoryAxis
+                tickCount={5}
+              />
+             <VictoryAxis dependentAxis
+              domain={[0,Math.round(max)]}
+              offsetX={50}
+              orientation="left"
+              standalone={false}
+            />
             <VictoryLine
-              domain ={{y:[0,Math.round(max)]}}
               data={stockData}
             />
           </VictoryChart>
+        </Col>
       )
     }
   }
@@ -117,7 +178,7 @@ class Statsboard extends React.Component {
   render() {
 
     const inputProps = {
-      placeholder: 'Type a programming language',
+      placeholder: 'Enter Company Symbol',
       value: this.props.suggestions.value,
       onChange: this.props.onChange
     };
@@ -126,9 +187,12 @@ class Statsboard extends React.Component {
        <div className="content">
                 <Grid fluid>
                     <Row>
+                    <h3>Stock Search Analysis</h3>
                         <Col md={12}>
-                          <h1> StatsBoard </h1>
-                           <Autosuggest
+                        <Card
+                          table-full-width
+                          content={
+                            <Autosuggest
                             suggestions={this.props.suggestions.suggestions}
                             onSuggestionsFetchRequested={this.props.onSuggestionsFetchRequested}
                             onSuggestionsClearRequested={this.props.onSuggestionsClearRequested}
@@ -136,41 +200,19 @@ class Statsboard extends React.Component {
                             getSuggestionValue={getSuggestionValue}
                             renderSuggestion={renderSuggestion}
                             inputProps={inputProps}
-                          />
-                        </Col>
-
-
-                        <Col md={12}>
-                            <Card
-                                plain
-                                title={table_title}
-                                ctTableFullWidth ctTableResponsive
-                                content={
-                                    <Table hover>
-                                        <thead>
-                                            <tr>
-                                               <th>Date</th>
-                                               <th>Open</th>
-                                               <th>High</th>
-                                               <th>Low</th>
-                                               <th>Volume</th>
-                                               <th>Change Percent</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {
-                                              this.renderStockData()
-                                            }
-                                        </tbody>
-                                    </Table>
-                                }
+                          
                             />
+                            }
+                            />
+                          <h2>{CompanyName}</h2>
                         </Col>
 
                         <Col md={12}>
                            {this.renderStockChart()}
-                        </Col>
+                        </Col>  
 
+                           {this.renderStockTable()}
+                        
                     </Row>
                 </Grid>
             </div>
