@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Navbar } from 'react-bootstrap';
-
+import StockSearch from 'components/StockSearch/StockSearch';
 import HeaderLinks from './HeaderLinks.jsx';
 
 import appRoutes from 'routes/app.jsx';
@@ -67,6 +67,7 @@ class Header extends Component{
                 <Navbar.Collapse>
                     <HeaderLinks />
                 </Navbar.Collapse>
+                <StockSearch />
             </Navbar>
         );
     }

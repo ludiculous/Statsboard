@@ -1,4 +1,4 @@
-import {TYPING_SUGGESTIONS, FETCH_SUGGESTIONS, CLEAR_SUGGESTIONS} from './types';
+import {TYPING_SUGGESTIONS, FETCH_SUGGESTIONS, CLEAR_SUGGESTIONS, SELECT_SUGGESTIONS} from './types';
 import StockSymbol from 'variables/StockSymbol.json';
 
 export const onChange = (event, {newValue}) => {
@@ -21,6 +21,14 @@ const getSuggestions = (value) => {
   ).slice(0,10);
 };
 
+export const updateSelected = (value) => {
+	return (dispatch) => {
+		dispatch({
+			type: SELECT_SUGGESTIONS,
+			payload: value
+		})
+	}
+}
 
 export const onSuggestionsFetchRequested = ({value, reason}) => {
 	console.log(value);

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Grid, Row, Col, Table } from 'react-bootstrap';
 import Autosuggest from 'react-autosuggest';
 import {connect} from 'react-redux';
 import StockSymbol from 'variables/StockSymbol.json';
@@ -7,7 +8,8 @@ import {
 	onChange, 
 	onSuggestionsFetchRequested, 
 	onSuggestionsClearRequested, 
-	fetchStockData
+	fetchStockData,
+	updateSelected
 } from 'actions';
 
 const getSuggestionValue = function(suggestion){
@@ -22,12 +24,6 @@ const renderSuggestion = suggestion => (
   </ul>
 );
 
-const inputProps = {
-      placeholder: 'Enter Company Symbol',
-      value: this.props.suggestions.value,
-      onChange: this.props.onChange
-    };
-
 class StatsSearch extends React.Component {
 
 	constructor(props){
@@ -38,24 +34,33 @@ class StatsSearch extends React.Component {
 	}
 
 	onSuggestionSelected (event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) {
-	  table_title = suggestion.name
-	  console.log(suggestion.symbol)
-	  this.props.fetchStockData(suggestion.symbol)
+	  this.props.updateSelected({symbol:suggestion.symbol, name:suggestion.name});
+	  this.props.fetchStockData(suggestion.symbol, '1m');
 	}
 
 	render(){
+		const inputProps = {
+	      placeholder: 'Enter Company Symbol',
+	      value: this.props.suggestions.value,
+	      onChange: this.props.onChange
+	    };
+
 		return(
-			<Col md={12}>
-				<Autosuggest
-		            suggestions={this.props.suggestions.suggestions}
-		            onSuggestionsFetchRequested={this.props.onSuggestionsFetchRequested}
-		            onSuggestionsClearRequested={this.props.onSuggestionsClearRequested}
-		            onSuggestionSelected = {this.onSuggestionSelected.bind(this)} 
-		            getSuggestionValue={getSuggestionValue}
-		            renderSuggestion={renderSuggestion}
-		            inputProps={inputProps}
-	          	/>
-          	</Col>
+			<Grid fluid>
+	           <Row>
+				<Col md={12}>
+					<Autosuggest
+			            suggestions={this.props.suggestions.suggestions}
+			            onSuggestionsFetchRequested={this.props.onSuggestionsFetchRequested}
+			            onSuggestionsClearRequested={this.props.onSuggestionsClearRequested}
+			            onSuggestionSelected = {this.onSuggestionSelected.bind(this)} 
+			            getSuggestionValue={getSuggestionValue}
+			            renderSuggestion={renderSuggestion}
+			            inputProps={inputProps}
+		          	/>
+	          	</Col>
+	           </Row>
+	         </Grid>
 		)
 	}
 
@@ -69,4 +74,4 @@ function mapStateToProps(state) {
 }
 
 
-export default connect(mapStateToProps, {onChange, onSuggestionsFetchRequested, onSuggestionsClearRequested, fetchStockData, update_stock_status})(StatsSearch);
+export default connect(mapStateToProps, {onChange, onSuggestionsFetchRequested, onSuggestionsClearRequested, fetchStockData, update_stock_status, updateSelected})(StatsSearch);

@@ -11,55 +11,10 @@ import GraphTheme from 'variables/GraphTheme';
 import {fetchStockData, onChange, onSuggestionsFetchRequested, onSuggestionsClearRequested} from 'actions'
 import { VictoryBar, VictoryChart, VictoryLine, VictoryAxis } from 'victory';
 
-const StockData = []
-var count = 0
-var Dates = []
-var CompanyName = ''
-var CompanySymbol = ''
 var CompanyTime = ''
-/*
-if(StockData.length < 1){
-  while(count < 10) {
-  count++
-  Dates.push(GraphData.dataset.data[count][0])
-  console.log(Dates)
-  var time = GraphData.dataset.data[count][0].split("-")
-  StockData.push(
-    {
-      x: new Date(time[0], time[1], time[2]),
-      y: GraphData.dataset.data[count][1]
-    }
-  )
-  }
-  console.log(StockData.length)
-}
-*/
-const getSuggestionValue = function(suggestion){
-  return suggestion.symbol;
-  console.log(suggestion)
-}
-
-
-
-const renderSuggestion = suggestion => (
-  <ul>
-    <li>{suggestion.symbol}</li>
-    <li>{suggestion.name}</li>
-  </ul>
-
-);
 
 class Statsboard extends React.Component {
   componentWillMount() {
-    
-  }
-
-
-  onSuggestionSelected (event, { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }) {
-  CompanyName = suggestion.name
-  CompanySymbol = suggestion.symbol
-  console.log(suggestion.symbol)
-    this.props.fetchStockData(suggestion.symbol,'1m')
   }
 
   renderStockData() { 
@@ -84,7 +39,7 @@ class Statsboard extends React.Component {
      return(
       <Card
           plain
-          title={this.props.suggestions.suggestions.name}
+          title={this.props.suggestions.selected.name}
           ctTableFullWidth ctTableResponsive
           content={
               <Table className="stock-chart-header">
@@ -123,14 +78,16 @@ class Statsboard extends React.Component {
     var context = this;
 
     this.props.stock.stockdata.map(function(stock,index) {
-      
+
+
+      console.log(stock.high);
       var time = stock.date
-      var date = new Date(time).toLocaleDateString('en-US');;
+      var date = new Date(time).toLocaleDateString('en-US');
       
       console.log(date);
       stockData.push({
         x: date,
-        y: parseInt(stock.high)
+        y: stock.high || null
       })
 
       if(max == '') {
@@ -140,6 +97,7 @@ class Statsboard extends React.Component {
       if(stock.high > max){
         max = stock.high
       }
+      console.log(max)
     })
 
     if(stockData.length > 1){
@@ -149,10 +107,10 @@ class Statsboard extends React.Component {
           <Table hover>
             <thead>
               <tr> 
-                <th onClick={()=>{context.fetchStockTime(CompanySymbol, '1m')}}>1m</th>
-                <th onClick={()=>{context.fetchStockTime(CompanySymbol, '3m')}}>3m</th>
-                <th onClick={()=>{context.fetchStockTime(CompanySymbol, '1y')}}>1y</th>
-                <th onClick={()=>{context.fetchStockTime(CompanySymbol, '5y')}}>5y</th>
+                <th onClick={()=>{context.fetchStockTime(this.props.suggestions.selected.symbol, '1m')}}>1m</th>
+                <th onClick={()=>{context.fetchStockTime(this.props.suggestions.selected.symbol, '3m')}}>3m</th>
+                <th onClick={()=>{context.fetchStockTime(this.props.suggestions.selected.symbol, '1y')}}>1y</th>
+                <th onClick={()=>{context.fetchStockTime(this.props.suggestions.selected.symbol, '5y')}}>5y</th>
               </tr>
             </thead>
           </Table>                         
@@ -177,45 +135,21 @@ class Statsboard extends React.Component {
 
   render() {
 
-    const inputProps = {
-      placeholder: 'Enter Company Symbol',
-      value: this.props.suggestions.value,
-      onChange: this.props.onChange
-    };
-
     return (
        <div className="content">
-                <Grid fluid>
-                    <Row>
-                    <h3>Stock Search Analysis</h3>
-                        <Col md={12}>
-                        <Card
-                          table-full-width
-                          content={
-                            <Autosuggest
-                            suggestions={this.props.suggestions.suggestions}
-                            onSuggestionsFetchRequested={this.props.onSuggestionsFetchRequested}
-                            onSuggestionsClearRequested={this.props.onSuggestionsClearRequested}
-                            onSuggestionSelected = {this.onSuggestionSelected.bind(this)} 
-                            getSuggestionValue={getSuggestionValue}
-                            renderSuggestion={renderSuggestion}
-                            inputProps={inputProps}
-                          
-                            />
-                            }
-                            />
-                          <h2>{CompanyName}</h2>
-                        </Col>
-
-                        <Col md={12}>
-                           {this.renderStockChart()}
-                        </Col>  
-
-                           {this.renderStockTable()}
-                        
-                    </Row>
-                </Grid>
-            </div>
+          <Grid fluid>
+            <Row>
+              <h3>Stock Search Analysis</h3>
+                <Col md={12}>
+                  <h2>{this.props.suggestions.selected.name}</h2>
+                </Col>
+                <Col md={12}>
+                   {this.renderStockChart()}
+                </Col>  
+                   {this.renderStockTable()}
+            </Row>
+          </Grid>
+      </div>
     );
   }
 }

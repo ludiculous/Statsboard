@@ -1,3 +1,7 @@
+a {
+	color: #337ab7;
+}
+
 #main-panel {
 	overflow-x: hidden;
 }
@@ -22,4 +26,9 @@
 
 .VictoryContainer {
 	height: 50%!important;
+}
+
+.card .title {
+	line-height: 1.2;
+	margin-bottom: 10px;
 }
